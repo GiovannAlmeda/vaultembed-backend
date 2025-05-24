@@ -4,6 +4,9 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Import database setup
+const { createTables } = require('./setup/database');
+
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const domainRoutes = require('./routes/domains');
@@ -76,7 +79,22 @@ app.use('*', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🚀 VaultEmbed API running on port ${PORT}`);
-    console.log(`🔗 Health check: http://localhost:${PORT}/health`);
-});
+// Initialize database and start server
+async function startServer() {
+    try {
+        console.log('🔧 Setting up database...');
+        await createTables();
+        console.log('✅ Database setup complete!');
+        
+        app.listen(PORT, () => {
+            console.log(`🚀 VaultEmbed API running on port ${PORT}`);
+            console.log(`🔗 Health check: http://localhost:${PORT}/health`);
+        });
+    } catch (error) {
+        console.error('💥 Failed to start server:', error);
+        process.exit(1);
+    }
+}
+
+// Start the server
+startServer();
